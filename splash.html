@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Splash Screen</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: transparent;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 8px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 20px;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    .app-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .loading {
+      width: 200px;
+      height: 4px;
+      background-color: #e0e0e0;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .loading-bar {
+      height: 100%;
+      width: 50%;
+      background-color: #4285f4;
+      position: absolute;
+      border-radius: 2px;
+      animation: loading 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @keyframes loading {
+      0% {
+        left: -50%;
+      }
+
+      100% {
+        left: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="splash-container">
+    <img src="logo.jpg" alt="App Logo" class="logo">
+    <div class="app-name">Digital DaVinci</div>
+    <div class="loading">
+      <div class="loading-bar"></div>
+    </div>
+  </div>
+</body>
+
+</html>

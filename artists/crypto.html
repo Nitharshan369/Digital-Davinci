@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artist Profile | Digital DaVinci</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .ape-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(45deg, #080808, #111111);
+        }
+
+        .bloom {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.6;
+            animation: float 20s infinite linear, pulse 8s infinite alternate;
+            mix-blend-mode: screen;
+            width: 600px !important;
+            height: 600px !important;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.7;
+            }
+
+            25% {
+                transform: translate(100%, 50%) scale(1.3);
+            }
+
+            50% {
+                transform: translate(50%, 100%) scale(0.9);
+            }
+
+            75% {
+                transform: translate(-50%, 75%) scale(1.4);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Wallet Button Styles */
+        .wallet-btn {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(32, 129, 226, 0.3);
+        }
+
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(32, 129, 226, 0.4);
+        }
+
+        .wallet-btn svg {
+            margin-right: 8px;
+        }
+
+        .wallet-balance {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Wallet Modal Styles */
+        .wallet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .wallet-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .wallet-modal {
+            width: 90%;
+            max-width: 400px;
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid #2a2a2a;
+        }
+
+        .wallet-overlay.active .wallet-modal {
+            transform: translateY(0);
+        }
+
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .wallet-header h3 {
+            font-size: 20px;
+            margin: 0;
+            background: linear-gradient(to right, #2081e2, #7f5af3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .close-wallet {
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-wallet:hover {
+            background-color: #2a2a2a;
+        }
+
+        .wallet-balance-display {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #2a2a2a;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(to right, #fff, #2081e2, #7f5af3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .wallet-actions {
+            margin-bottom: 25px;
+        }
+
+        .wallet-action {
+            margin-bottom: 15px;
+        }
+
+        .wallet-action input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .wallet-action input:focus {
+            outline: none;
+            border-color: #2081e2;
+        }
+
+        .wallet-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .wallet-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .wallet-button.add {
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+        }
+
+        .wallet-button.withdraw {
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #3a3a3a;
+        }
+
+        .wallet-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .wallet-button.add:hover {
+            box-shadow: 0 5px 15px rgba(32, 129, 226, 0.3);
+        }
+
+        .wallet-transactions {
+            padding-top: 15px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .wallet-transactions h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .transactions-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 12px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .transaction-type {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .transaction-time {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+        }
+
+        .transaction-amount.add {
+            color: #4CAF50;
+        }
+
+        .transaction-amount.withdraw {
+            color: #F44336;
+        }
+
+        /* Transaction animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .transaction-item {
+            animation: fadeIn 0.3s forwards;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .wallet-btn {
+                padding: 6px 10px;
+                margin-right: 10px;
+            }
+
+            .wallet-balance {
+                font-size: 12px;
+            }
+
+            .wallet-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ape-background"></div>
+    <div class="nft-background-animation"></div>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="../index.html" class="logo">Digital<span>DaVinci</span></a>
+
+        <div class="nav-links">
+            <a href="../index.html" class="nav-link">Home</a>
+            <a href="../collections.html" class="nav-link">Collections</a>
+            <a href="../artists.html" class="nav-link active">Artists</a>
+        </div>
+
+        <div class="nav-right">
+            <div class="wallet-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+                <span class="wallet-balance">0.00 ETH</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Artist Profile Header -->
+    <section class="artist-profile-header">
+        <div class="artist-avatar"><img src="../ArtistProfile/cryptopunks.avif" style="border-radius: 100px;"
+                height="170" alt="ape"></div>
+        <h1 class="artist-name">CryptoPunks</h1>
+        <p class="artist-bio">The project that inspired the modern CryptoArt movement. CryptoPunks are one of the
+            earliest and most iconic examples of "Non-Fungible Tokens” minted on Ethereum, and were the inspiration for
+            the ERC-721 standard which powers most digital art and collectibles on-chain.</p>
+
+        <div class="artist-stats">
+            <div class="stat">
+                <div class="stat-value">6</div>
+                <div class="stat-label">ITEMS</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">2</div>
+                <div class="stat-label">OWNERS</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">16.77</div>
+                <div class="stat-label">FLOOR (ETH)</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value">269.82</div>
+                <div class="stat-label">VOLUME (ETH)</div>
+            </div>
+        </div>
+
+        <div class="social-icons">
+            <a href="https://x.com/?lang=en" target="_blank" class="social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+            </a>
+            <a href="https://www.instagram.com/" target="_blank" class="social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                </svg>
+            </a>
+            <a href="https://discord.com/" target="_blank" class="social-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                    <path
+                        d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- Artist Tabs -->
+    <div class="artist-tabs">
+        <div class="artist-tab active">Creations</div>
+        <div class="artist-tab">Collection</div>
+        <div class="artist-tab">Activity</div>
+        <div class="artist-tab">About</div>
+    </div>
+
+    <!-- NFT Grid -->
+    <section class="nft-grid-section">
+        <div class="section-header">
+            <h2 class="section-title">CryptoPunk's Creations</h2>
+        </div>
+
+        <div class="nft-grid">
+            <!-- NFT Card 1 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto1107.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#1107</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">16.77 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">7.21 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+
+            <!-- NFT Card 2 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto1317.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#1317</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">35.60 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">29.19 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+
+            <!-- NFT Card 3 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto3634.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#3634</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">90.00 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">55.00 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+
+            <!-- NFT Card 4 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto3771.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#3771</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">38.99 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">28.00 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+
+            <!-- NFT Card 5 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto7729.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#7729</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">18.77 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">19.81 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+
+            <!-- NFT Card 6 -->
+            <div class="nft-card">
+                <div class="nft-img-container">
+                    <img src="../items/crypto/crypto9735.avif" class="nft-img">
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Special Edition</div>
+                    <div class="nft-title">#9735</div>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">69.69 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">59.45 ETH</div>
+                        </div>
+                    </div>
+                    <button class="buy-now-btn">Buy now</button>
+                </div>
+            </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-column" style="flex: 2;">
+                <div class="footer-logo">Digital<span>DaVinci</span></div>
+                <p class="footer-about">
+                    Digital DaVinci is the premier NFT marketplace for artists and collectors to buy, sell, and discover
+                    rare digital art.
+                </p>
+                <div class="social-icons">
+                    <a href="https://x.com/?lang=en" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                    </a>
+                    <a href="https://www.instagram.com/" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                        </svg>
+                    </a>
+                    <a href="https://discord.com/" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-column" style="flex: 1;">
+                <h3 class="footer-heading">Quick Links</h3>
+                <div class="footer-links">
+                    <a href="../index.html" class="footer-link">Home</a>
+                    <a href="../collections.html" class="footer-link">Collections</a>
+                    <a href="../artists.html" class="footer-link">Artists</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Digital DaVinci. All rights reserved.</p>
+        </div>
+    </footer>
+    <div class="wallet-overlay">
+        <div class="wallet-modal">
+            <div class="wallet-header">
+                <h3>Your Wallet</h3>
+                <div class="close-wallet">×</div>
+            </div>
+            <div class="wallet-balance-display">
+                <div class="balance-label">Current Balance</div>
+                <div class="balance-amount"><span id="modalBalance">0.00</span> ETH</div>
+            </div>
+            <div class="wallet-actions">
+                <div class="wallet-action">
+                    <input type="number" id="amount" placeholder="Amount in ETH" step="0.01" min="0.01">
+                    <div class="wallet-buttons">
+                        <button id="addFunds" class="wallet-button add">Add Funds</button>
+                        <button id="withdrawFunds" class="wallet-button withdraw">Withdraw</button>
+                    </div>
+                </div>
+            </div>
+            <div class="wallet-transactions">
+                <h4>Recent Transactions</h4>
+                <div class="transactions-list" id="transactionsList">
+                    <!-- Transactions will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Get all tabs and prepare content sections
+            const tabs = document.querySelectorAll('.artist-tab');
+            const contentContainer = document.querySelector('.nft-grid-section');
+            let originalContent = contentContainer.innerHTML; // Store original Creations content
+
+            // Initialize tab functionality
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    tabs.forEach(t => t.classList.remove('active'));
+
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+
+                    // Load appropriate content based on the tab
+                    loadTabContent(tab.textContent.trim());
+                });
+            });
+
+            // Function to load content based on selected tab
+            function loadTabContent(tabName) {
+                // Update section title based on tab
+                const sectionTitle = document.querySelector('.section-title');
+
+                switch (tabName) {
+                    case 'Creations':
+                        contentContainer.innerHTML = originalContent;
+                        initializePopup();
+                        updateOwnedNFTs(); // Update ownership status
+                        break;
+
+                    case 'Collection':
+                        // Show a single box with the collection that links back to Creations
+                        sectionTitle.textContent = "Collections";
+                        contentContainer.innerHTML = `
+                    <div class="section-header">
+                        <h2 class="section-title">Collections</h2>
+                    </div>
+                    <div class="collection-container">
+                        <div class="collection-card" onclick="switchToCreations()">
+                            <div class="collection-img-container">
+                                <img src="../ArtistProfile/cryptopunks.avif" class="collection-img">
+                            </div>
+                            <div class="collection-card-info">
+                                <div class="collection-title">CryptoPunks Collection</div>
+                                <div class="collection-stats">
+                                    <div class="collection-stat">
+                                        <div class="stat-value">6</div>
+                                        <div class="stat-label">ITEMS</div>
+                                    </div>
+                                    <div class="collection-stat">
+                                        <div class="stat-value">16.77</div>
+                                        <div class="stat-label">FLOOR (ETH)</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                        break;
+
+                    case 'Activity':
+                        // Show activity content
+                        sectionTitle.textContent = "Activity";
+                        contentContainer.innerHTML = `
+                    <div class="section-header">
+                        <h2 class="section-title">Activity</h2>
+                        
+                    </div>
+                    <div class="activity-feed">
+                        <div class="activity-item">
+                            <div class="activity-img">
+                                <img src="../items/crypto/crypto1107.avif" alt="CryptoPunk #1107">
+                            </div>
+                            <div class="activity-details">
+                                <div class="activity-type sale">Sale</div>
+                                <div class="activity-title">CryptoPunk #1107</div>
+                                <div class="activity-price">7.21 ETH</div>
+                                <div class="activity-time">12 hours ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-img">
+                                <img src="../items/crypto/crypto1317.avif" alt="CryptoPunk #1317">
+                            </div>
+                            <div class="activity-details">
+                                <div class="activity-type listing">Listed</div>
+                                <div class="activity-title">CryptoPunk #1317</div>
+                                <div class="activity-price">35.60 ETH</div>
+                                <div class="activity-time">1 day ago</div>
+                            </div>
+                        </div>
+                        <div class="activity-item">
+                            <div class="activity-img">
+                                <img src="../items/crypto/crypto3634.avif" alt="CryptoPunk #3634">
+                            </div>
+                            <div class="activity-details">
+                                <div class="activity-type sale">Sale</div>
+                                <div class="activity-title">CryptoPunk #3634</div>
+                                <div class="activity-price">55.00 ETH</div>
+                                <div class="activity-time">3 days ago</div>
+                            </div>
+                        </div>
+                    </div>`;
+                        break;
+
+                    case 'About':
+                        // Show about content
+                        sectionTitle.textContent = "About";
+                        contentContainer.innerHTML = `
+                    <div class="section-header">
+                        <h2 class="section-title">About</h2>
+                    </div>
+                    <div class="about-section">
+                        <div class="about-content">
+                            <h3>CryptoPunks</h3>
+                            <p>CryptoPunks is a pioneering NFT collection of 10,000 uniquely generated pixel art characters on the Ethereum blockchain. Created by Larva Labs in 2017, they were among the first NFTs on Ethereum and have become an iconic symbol of blockchain art and collectibles.</p>
+                            
+                            <h3>History</h3>
+                            <p>Launched in June 2017, CryptoPunks were initially given away for free to anyone with an Ethereum wallet. The collection quickly gained value as collectors recognized their historical significance. In 2021, Yuga Labs acquired the IP rights to CryptoPunks, further cementing their legacy in the NFT space.</p>
+                            
+                            <h3>Community</h3>
+                            <p>CryptoPunks has one of the most prestigious communities in the NFT space. Owning a CryptoPunk has become a status symbol among crypto enthusiasts and celebrities. Each punk has unique characteristics and varying rarities, with some selling for millions of dollars at major auction houses like Christie's and Sotheby's.</p>
+                            
+                            <div class="about-stats">
+                                <div class="about-stat">
+                                    <div class="stat-value">10,000</div>
+                                    <div class="stat-label">TOTAL SUPPLY</div>
+                                </div>
+                                <div class="about-stat">
+                                    <div class="stat-value">2017</div>
+                                    <div class="stat-label">ESTABLISHED</div>
+                                </div>
+                                <div class="about-stat">
+                                    <div class="stat-value">ETH</div>
+                                    <div class="stat-label">CURRENCY</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                        break;
+                }
+            }
+
+            // Helper functions for sessionStorage management
+            function getOwnedNFTs() {
+                return JSON.parse(sessionStorage.getItem('ownedNFTs')) || [];
+            }
+
+            function saveOwnedNFT(nftTitle) {
+                const ownedNFTs = getOwnedNFTs();
+                if (!ownedNFTs.includes(nftTitle)) {
+                    ownedNFTs.push(nftTitle);
+                    sessionStorage.setItem('ownedNFTs', JSON.stringify(ownedNFTs));
+                }
+            }
+
+            function updateOwnedNFTs() {
+                const ownedNFTs = getOwnedNFTs();
+                const nftCards = document.querySelectorAll('.nft-card');
+
+                nftCards.forEach(card => {
+                    const title = card.querySelector('.nft-title').textContent;
+                    const isOwned = ownedNFTs.includes(title);
+                    const imgContainer = card.querySelector('.nft-img-container');
+                    const buyButton = card.querySelector('.buy-now-btn');
+
+                    // Remove existing owned badges
+                    const existingBadge = imgContainer.querySelector('.owned-badge');
+                    if (existingBadge) existingBadge.remove();
+
+                    if (isOwned) {
+                        // Add owned badge
+                        const ownedBadge = document.createElement('div');
+                        ownedBadge.className = 'owned-badge';
+                        ownedBadge.textContent = 'You own this';
+                        imgContainer.appendChild(ownedBadge);
+
+                        // Update button
+                        buyButton.textContent = 'View';
+                        buyButton.classList.add('view-btn');
+                        card.classList.add('owned-nft');
+                    } else {
+                        // Reset button
+                        buyButton.textContent = 'Buy now';
+                        buyButton.classList.remove('view-btn');
+                        card.classList.remove('owned-nft');
+                    }
+                });
+            }
+
+            // Initialize and setup popup functionality
+            function setupPopup() {
+                // Check if popup container already exists
+                if (!document.querySelector('.nft-popup-container')) {
+                    // Create popup container and append to body
+                    const popupContainer = document.createElement('div');
+                    popupContainer.className = 'nft-popup-container';
+                    popupContainer.style.display = 'none';
+                    document.body.appendChild(popupContainer);
+
+                    // Add popup HTML structure
+                    popupContainer.innerHTML = `
+                        <div class="nft-popup-overlay"></div>
+                        <div class="nft-popup">
+                            <div class="nft-popup-close">&times;</div>
+                            <div class="nft-popup-content">
+                                <div class="nft-popup-left">
+                                    <div class="nft-popup-img-container">
+                                        <img src="" alt="" class="nft-popup-img">
+                                    </div>
+                                </div>
+                                <div class="nft-popup-right">
+                                    <div class="nft-popup-collection"></div>
+                                    <h2 class="nft-popup-title"></h2>
+                                    
+                                    <div class="nft-popup-owner">
+                                        <div class="owner-label">Owner</div>
+                                        <div class="owner-address">0x7e8b...4f92</div>
+                                    </div>
+                                    
+                                    <div class="nft-popup-details">
+                                        <div class="detail-section">
+                                            <h3>Current Price</h3>
+                                            <div class="price-container">
+                                                <div class="eth-icon">Ξ</div>
+                                                <div class="price-value"></div>
+                                                <div class="usd-value"></div>
+                                            </div>
+                                            
+                                        </div>
+                                        
+                                        <div class="detail-section">
+                                            <h3>Last Sale</h3>
+                                            <div class="sale-container">
+                                                <div class="eth-icon">Ξ</div>
+                                                <div class="sale-value"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="nft-popup-traits">
+                                        <h3>Properties</h3>
+                                        <div class="traits-container"></div>
+                                    </div>
+                                    
+                                    <div class="nft-popup-actions">
+                                        <button class="buy-now-btn popup-buy">Buy now</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // Close popup when clicking the close button or overlay
+                    document.querySelector('.nft-popup-close').addEventListener('click', closePopup);
+                    document.querySelector('.nft-popup-overlay').addEventListener('click', closePopup);
+
+                    // Add buy functionality to the popup buy button
+                    document.querySelector('.popup-buy').addEventListener('click', function () {
+                        buyNFT();
+                    });
+                }
+            }
+
+            // Buy NFT function implementation
+            function buyNFT() {
+                const nftTitle = document.querySelector('.nft-popup-title').textContent;
+                const nftPriceText = document.querySelector('.price-value').textContent;
+                const nftPrice = parseFloat(nftPriceText.replace(' ETH', ''));
+
+                // Get wallet data
+                const walletData = JSON.parse(sessionStorage.getItem('walletData')) || { balance: 0, transactions: [] };
+
+                // Check balance
+                if (walletData.balance < nftPrice) {
+                    showError(`Insufficient funds! You need ${nftPrice - walletData.balance} more ETH to complete this purchase.`);
+                    return;
+                }
+
+                // Show confirmation
+                if (confirm(`Purchase ${nftTitle} for ${nftPrice} ETH?`)) {
+                    const buyBtn = document.querySelector('.popup-buy');
+                    buyBtn.textContent = 'Processing...';
+                    buyBtn.disabled = true;
+
+                    // Simulate blockchain transaction
+                    setTimeout(() => {
+                        try {
+                            // Update wallet
+                            walletData.balance -= nftPrice;
+                            walletData.transactions.unshift({
+                                type: 'Purchase',
+                                amount: nftPrice,
+                                timestamp: new Date().toISOString(),
+                                item: nftTitle
+                            });
+
+                            // Trim transactions
+                            if (walletData.transactions.length > 10) {
+                                walletData.transactions = walletData.transactions.slice(0, 10);
+                            }
+
+                            // Save data
+                            sessionStorage.setItem('walletData', JSON.stringify(walletData));
+
+                            // Update UI
+                            updateWalletDisplay();
+                            saveOwnedNFT(nftTitle);
+                            updateOwnedNFTs();
+
+                            // Show success
+                            showError(`Success! You now own ${nftTitle}`);
+
+                            // Update popup
+                            document.querySelector('.owner-address').textContent = '0xYou...123';
+                            document.querySelector('.owner-address').classList.add('you-owner');
+                            buyBtn.textContent = 'Owned';
+                            buyBtn.disabled = true;
+
+                            // Close popup after delay
+                            setTimeout(closePopup, 1500);
+                        } catch (error) {
+                            console.error('Purchase error:', error);
+                            showError('Transaction failed. Please try again.');
+                            buyBtn.textContent = 'Buy now';
+                            buyBtn.disabled = false;
+                        }
+                    }, 1500); // Simulate network delay
+                }
+            }
+
+            // Add this new function to update wallet displays
+            function updateWalletDisplay() {
+                const walletData = JSON.parse(sessionStorage.getItem('walletData')) || { balance: 0 };
+
+                // Update wallet button
+                const walletBalance = document.querySelector('.wallet-balance');
+                if (walletBalance) {
+                    walletBalance.textContent = `${walletData.balance.toFixed(2)} ETH`;
+                }
+
+                // Update modal balance
+                const modalBalance = document.getElementById('modalBalance');
+                if (modalBalance) {
+                    modalBalance.textContent = walletData.balance.toFixed(2);
+                }
+
+                // Update transactions list
+                renderTransactions();
+            }
+
+            // Update the renderTransactions function to handle purchases
+            function renderTransactions() {
+                const transactionsList = document.getElementById('transactionsList');
+                if (!transactionsList) return;
+
+                const walletData = JSON.parse(sessionStorage.getItem('walletData')) || { transactions: [] };
+
+                transactionsList.innerHTML = '';
+
+                if (walletData.transactions.length === 0) {
+                    transactionsList.innerHTML = '<div class="transaction-item">No transactions yet</div>';
+                    return;
+                }
+
+                walletData.transactions.forEach(transaction => {
+                    const date = new Date(transaction.timestamp);
+                    const formattedTime = date.toLocaleString();
+
+                    const transactionEl = document.createElement('div');
+                    transactionEl.className = 'transaction-item';
+
+                    let typeDisplay = transaction.type;
+                    let amountPrefix = '+';
+                    let amountClass = 'add';
+
+                    if (transaction.type === 'Purchase') {
+                        typeDisplay = `Purchase: ${transaction.item || 'NFT'}`;
+                        amountPrefix = '-';
+                        amountClass = 'withdraw';
+                    } else if (transaction.type === 'Withdrawal') {
+                        amountPrefix = '-';
+                        amountClass = 'withdraw';
+                    }
+
+                    transactionEl.innerHTML = `
+            <div class="transaction-info">
+                <div class="transaction-type">${typeDisplay}</div>
+                <div class="transaction-time">${formattedTime}</div>
+            </div>
+            <div class="transaction-amount ${amountClass}">
+                ${amountPrefix}${transaction.amount.toFixed(2)} ETH
+            </div>
+        `;
+
+                    transactionsList.appendChild(transactionEl);
+                });
+            }
+
+            // Initialize popup event listeners for NFT cards
+            function initializePopup() {
+                // Ensure popup container exists
+                setupPopup();
+
+                // Get all NFT cards and add click listener
+                const nftCards = document.querySelectorAll('.nft-card');
+                nftCards.forEach(card => {
+                    // Remove any existing click listeners to prevent duplicates
+                    card.removeEventListener('click', cardClickHandler);
+                    // Add new click listener
+                    card.addEventListener('click', cardClickHandler);
+                });
+            }
+
+            // Function to handle card clicks
+            function cardClickHandler() {
+                openPopup(this);
+            }
+
+            // Function to populate and open the popup
+            function openPopup(card) {
+                // Get data from the clicked card
+                const imgSrc = card.querySelector('.nft-img').src;
+                const collection = card.querySelector('.nft-collection').textContent;
+                const title = card.querySelector('.nft-title').textContent;
+                const price = card.querySelector('.price-value').textContent;
+                const lastSale = card.querySelector('.nft-price-row .price-value:last-child').textContent;
+
+                // Calculate USD value (assume 1 ETH = $4,025 USD for this example)
+                const ethPrice = parseFloat(price.split(' ')[0]);
+                const usdValue = (ethPrice * 4025).toLocaleString('en-US', {
+                    style: 'currency',
+                    currency: 'USD'
+                });
+
+                // Populate the popup with the data
+                document.querySelector('.nft-popup-img').src = imgSrc;
+                document.querySelector('.nft-popup-collection').textContent = collection;
+                document.querySelector('.nft-popup-title').textContent = title;
+                document.querySelector('.price-value').textContent = price;
+                document.querySelector('.usd-value').textContent = usdValue;
+                document.querySelector('.sale-value').textContent = lastSale;
+
+                // Generate random traits based on the NFT number
+                const nftNumber = parseInt(title.replace('#', ''));
+                generateTraits(nftNumber);
+
+                // Show the popup with fixed positioning
+                const popupContainer = document.querySelector('.nft-popup-container');
+                popupContainer.style.display = 'block';
+                document.body.style.overflow = 'hidden'; // Prevent scrolling
+
+                // Reset scroll position of the popup content
+                document.querySelector('.nft-popup-content').scrollTop = 0;
+
+                // Check if NFT is owned and update UI accordingly
+                const ownedNFTs = getOwnedNFTs();
+                if (ownedNFTs.includes(title)) {
+                    document.querySelector('.owner-address').textContent = '0xYou...123';
+                    document.querySelector('.owner-address').classList.add('you-owner');
+                    document.querySelector('.popup-buy').textContent = 'Listed for Sale';
+                    document.querySelector('.popup-buy').disabled = true;
+                } else {
+                    document.querySelector('.owner-address').textContent = '0x7e8b...4f92';
+                    document.querySelector('.owner-address').classList.remove('you-owner');
+                    document.querySelector('.popup-buy').textContent = 'Buy now';
+                    document.querySelector('.popup-buy').disabled = false;
+                }
+            }
+
+            // Function to close the popup
+            function closePopup() {
+                const popupContainer = document.querySelector('.nft-popup-container');
+                if (popupContainer) {
+                    popupContainer.style.display = 'none';
+                    document.body.style.overflow = 'auto'; // Re-enable scrolling
+                }
+            }
+
+            // Function to generate traits based on NFT number
+            function generateTraits(nftNumber) {
+                const traitsContainer = document.querySelector('.traits-container');
+                traitsContainer.innerHTML = '';
+
+                // Define possible traits
+                const traitTypes = ['Rarity', 'Type', 'Eyes', 'Mouth', 'Clothes', 'Hat'];
+                const traitValues = {
+                    'Rarity': ['Common', 'Epic', 'Legendary', 'Rare', 'Contraband', 'Unobtainable'],
+                    'Type': ['Love', 'Hate', 'Anger', 'Crazy', 'Dumb', 'Funny'],
+                    'Eyes': ['Bored', 'Angry', 'Sad', 'Crazy', 'Zombie', 'Laser'],
+                    'Mouth': ['Bored', 'Grin', 'Dumbfounded', 'Rage', 'Jovial'],
+                    'Clothes': ['Striped Tee', 'Suit', 'Tanktop', 'Hawaiian', 'Navy Coat'],
+                    'Hat': ['Fez', 'Captains Hat', 'Bandana', 'Party Hat', 'None']
+                };
+
+                // Generate pseudo-random traits based on NFT number
+                const seedRandom = (seed, max) => {
+                    return Math.floor((((seed * 9301 + 49297) % 233280) / 233280) * max);
+                };
+
+                // Create 4 random traits
+                for (let i = 0; i < 4; i++) {
+                    const traitType = traitTypes[i + (nftNumber % 2)]; // Ensure variation
+                    const valueIndex = seedRandom(nftNumber + (i * 1000), traitValues[traitType].length);
+                    const rarity = seedRandom(nftNumber + (i * 500), 40) + 1; // 1-40% rarity
+
+                    const traitValue = traitValues[traitType][valueIndex];
+
+                    const traitElement = document.createElement('div');
+                    traitElement.className = 'trait-box';
+                    traitElement.innerHTML = `
+                        <div class="trait-type">${traitType}</div>
+                        <div class="trait-value">${traitValue}</div>
+                        <div class="trait-rarity">${rarity}% have this trait</div>
+                    `;
+                    traitsContainer.appendChild(traitElement);
+                }
+            }
+
+            // Global function to switch from Collection to Creations tab
+            window.switchToCreations = function () {
+                // Find the Creations tab and trigger a click on it
+                const creationsTab = document.querySelector('.artist-tab:nth-child(1)');
+                if (creationsTab) {
+                    creationsTab.click();
+                }
+            };
+
+            // Add CSS for popup and components if not already added
+            function addStyles() {
+                if (!document.getElementById('custom-styles')) {
+                    const styleElement = document.createElement('style');
+                    styleElement.id = 'custom-styles';
+                    styleElement.textContent = `
+                        /* Collection Card Styles */
+                        .collection-container {
+                            display: flex;
+                            justify-content: center;
+                            padding: 20px 0;
+                        }
+                        
+                        .collection-card {
+                            background-color: #1a1a1a;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            transition: transform 0.3s, box-shadow 0.3s;
+                            cursor: pointer;
+                            max-width: 400px;
+                            width: 100%;
+                        }
+                        
+                        .collection-card:hover {
+                            transform: translateY(-5px);
+                            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+                        }
+                        
+                        .collection-img-container {
+                            position: relative;
+                            width: 100%;
+                            aspect-ratio: 1;
+                            overflow: hidden;
+                        }
+                        
+                        .collection-img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                        
+                        .collection-card-info {
+                            padding: 15px;
+                        }
+                        
+                        .collection-title {
+                            font-weight: bold;
+                            margin-bottom: 15px;
+                            font-size: 18px;
+                        }
+                        
+                        .collection-stats {
+                            display: flex;
+                            justify-content: space-around;
+                            margin-top: 15px;
+                        }
+                        
+                        .collection-stat {
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        }
+                        
+                        /* Activity Feed Styles */
+                        .activity-feed {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 15px;
+                            margin-top: 20px;
+                        }
+                        
+                        .activity-item {
+                            display: flex;
+                            align-items: center;
+                            background-color: #1a1a1a;
+                            border-radius: 12px;
+                            padding: 15px;
+                            transition: transform 0.2s;
+                        }
+                        
+                        .activity-item:hover {
+                            transform: translateY(-3px);
+                        }
+                        
+                        .activity-img {
+                            width: 60px;
+                            height: 60px;
+                            overflow: hidden;
+                            border-radius: 8px;
+                            margin-right: 15px;
+                        }
+                        
+                        .activity-img img {
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                        
+                        .activity-details {
+                            flex: 1;
+                        }
+                        
+                        .activity-type {
+                            display: inline-block;
+                            padding: 3px 8px;
+                            border-radius: 12px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .activity-type.sale {
+                            background-color: rgba(32, 129, 226, 0.2);
+                            color: #2081e2;
+                        }
+                        
+                        .activity-type.listing {
+                            background-color: rgba(112, 219, 112, 0.2);
+                            color: #70db70;
+                        }
+                        
+                        .activity-title {
+                            font-weight: bold;
+                            margin-bottom: 3px;
+                        }
+                        
+                        .activity-price {
+                            font-weight: bold;
+                            color: #2081e2;
+                        }
+                        
+                        .activity-time {
+                            font-size: 12px;
+                            color: #888;
+                            margin-top: 3px;
+                        }
+                        
+                        /* About Section Styles */
+                        .about-section {
+                            padding: 20px;
+                            background-color: #1a1a1a;
+                            border-radius: 12px;
+                            margin-top: 20px;
+                        }
+                        
+                        .about-content h3 {
+                            margin-top: 20px;
+                            margin-bottom: 10px;
+                            font-size: 18px;
+                        }
+                        
+                        .about-content p {
+                            color: #aaa;
+                            line-height: 1.6;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .about-stats {
+                            display: flex;
+                            justify-content: space-around;
+                            margin-top: 30px;
+                            padding-top: 20px;
+                            border-top: 1px solid #333;
+                        }
+                        
+                        /* NFT Popup Styles */
+                        .nft-popup-container {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            z-index: 1000;
+                        }
+                        
+                        .nft-popup-overlay {
+                            position: absolute;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, 0.8);
+                            backdrop-filter: blur(5px);
+                        }
+                        
+                        .nft-popup {
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 90%;
+                            max-width: 1000px;
+                            max-height: 90vh;
+                            background-color: #0d0d0d;
+                            border-radius: 16px;
+                            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                        }
+                        
+                        .nft-popup-close {
+                            position: absolute;
+                            top: 15px;
+                            right: 20px;
+                            font-size: 28px;
+                            color: white;
+                            cursor: pointer;
+                            z-index: 10;
+                        }
+                        
+                        .nft-popup-content {
+                            display: flex;
+                            flex-direction: row;
+                            height: 90vh;
+                            max-height: 700px;
+                            overflow-y: auto;
+                        }
+                        
+                        .nft-popup-left {
+                            flex: 1;
+                            padding: 20px;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                        }
+                        
+                        .nft-popup-img-container {
+                            width: 100%;
+                            max-width: 450px;
+                            border-radius: 12px;
+                            overflow: hidden;
+                        }
+                        
+                        .nft-popup-img {
+                            width: 100%;
+                            height: auto;
+                            object-fit: contain;
+                            border-radius: 12px;
+                        }
+                        
+                        .nft-popup-right {
+                            flex: 1;
+                            padding: 30px;
+                            background-color: #1a1a1a;
+                            overflow-y: auto;
+                        }
+                        
+                        .nft-popup-collection {
+                            color: #2081e2;
+                            font-size: 14px;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .nft-popup-title {
+                            font-size: 28px;
+                            font-weight: bold;
+                            margin-bottom: 20px;
+                        }
+                        
+                        .nft-popup-owner {
+                            display: flex;
+                            align-items: center;
+                            margin-bottom: 25px;
+                            gap: 10px;
+                        }
+                        
+                        .owner-label {
+                            color: #888;
+                            font-size: 14px;
+                        }
+                        
+                        .owner-address {
+                            font-size: 16px;
+                            font-weight: bold;
+                        }
+                        
+                        .nft-popup-details {
+                            display: flex;
+                            flex-direction: column;
+                            gap: 15px;
+                            margin-bottom: 25px;
+                        }
+                        
+                        .detail-section {
+                            padding: 12px 15px;
+                            background-color: #222;
+                            border-radius: 12px;
+                        }
+                        
+                        .detail-section h3 {
+                            font-size: 14px;
+                            color: #888;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .price-container, .sale-container {
+                            display: flex;
+                            align-items: center;
+                            font-size: 24px;
+                            font-weight: bold;
+                        }
+                        
+                        .eth-icon {
+                            margin-right: 5px;
+                            font-size: 20px;
+                        }
+                        
+                        .usd-value {
+                            font-size: 20px;
+                            color: #fff;
+                            margin-top: 3px;
+                        }
+                        
+                        .nft-popup-traits {
+                            margin-bottom: 25px;
+                        }
+                        
+                        .nft-popup-traits h3 {
+                            font-size: 18px;
+                            margin-bottom: 15px;
+                        }
+                        
+                        .traits-container {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                            gap: 10px;
+                        }
+                        
+                        .trait-box {
+                            background-color: #222;
+                            border-radius: 10px;
+                            padding: 10px;
+                            text-align: center;
+                        }
+                        
+                        .trait-type {
+                            color: #888;
+                            font-size: 12px;
+                            margin-bottom: 5px;
+                        }
+                        
+                        .trait-value {
+                            font-weight: bold;
+                            margin-bottom: 5px;
+                            font-size: 16px;
+                        }
+                        
+                        .trait-rarity {
+                            color: #888;
+                            font-size: 11px;
+                        }
+                        
+                        .nft-popup-actions {
+                            display: flex;
+                            gap: 10px;
+                            margin-top: 20px;
+                        }
+                        
+                        .popup-buy {
+                            flex: 1;
+                            padding: 12px;
+                            border-radius: 10px;
+                            font-size: 16px;
+                            font-weight: bold;
+                            cursor: pointer;
+                            border: none;
+                            transition: background-color 0.3s;
+                            background-color: #2081e2;
+                            color: white;
+                        }
+                        
+                        .popup-buy:hover {
+                            background-color: #1a73e8;
+                        }
+                        
+                        .popup-buy:disabled {
+                            background-color: #333;
+                            cursor: not-allowed;
+                        }
+                        
+                        /* Owned NFT Styles */
+                        .owned-badge {
+                            position: absolute;
+                            top: 10px;
+                            right: 10px;
+                            background-color: rgba(32, 129, 226, 0.9);
+                            color: white;
+                            padding: 5px 10px;
+                            border-radius: 20px;
+                            font-size: 12px;
+                            font-weight: bold;
+                            z-index: 2;
+                        }
+                        
+                        .owned-nft {
+                            box-shadow: 0 0 0 2px #2081e2;
+                        }
+                        
+                        .view-btn {
+                            background-color: #333 !important;
+                            cursor: default !important;
+                        }
+                        
+                        .view-btn:hover {
+                            background-color: #333 !important;
+                        }
+                        
+                        .you-owner {
+                            color: #2081e2;
+                            font-weight: bold;
+                        }
+                        
+                        @media (max-width: 768px) {
+                            .nft-popup-content {
+                                flex-direction: column;
+                                height: auto;
+                                max-height: none;
+                            }
+                            
+                            .nft-popup-right {
+                                padding: 20px;
+                            }
+                            
+                            .traits-container {
+                                grid-template-columns: repeat(2, 1fr);
+                            }
+                        }
+                    `;
+                    document.head.appendChild(styleElement);
+                }
+            }
+
+            // Add custom styles
+            addStyles();
+
+            // Initialize popup functionality on page load
+            initializePopup();
+
+            // Initialize owned NFTs on page load
+            updateOwnedNFTs();
+
+            // Floating ape silhouettes
+
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const background = document.querySelector('.ape-background');
+
+            function createBloom() {
+                const bloom = document.createElement('div');
+                bloom.className = 'bloom';
+
+                const size = 600; // Fixed large size
+                const x = Math.random() * 100;
+                const y = Math.random() * 100;
+
+                const colors = [
+                    `radial-gradient(circle at center, rgba(0, 0, 255, 0.6) 0%, transparent 70%)`,      // Blue
+                    `radial-gradient(circle at center, rgba(150, 75, 0, 0.6) 0%, transparent 70%)`,     // Brown
+                    `radial-gradient(circle at center, rgba(255, 255, 255, 0.6) 0%, transparent 70%)`   // White
+                ];
+
+
+                bloom.style.left = `${x}%`;
+                bloom.style.top = `${y}%`;
+                bloom.style.background = colors[Math.floor(Math.random() * colors.length)];
+                bloom.style.animationDuration = `${Math.random() * 15 + 10}s`;
+                bloom.style.zIndex = Math.floor(Math.random() * 3);
+
+                background.appendChild(bloom);
+
+                setTimeout(() => bloom.remove(), 30000);
+            }
+
+            // Create initial blooms
+            for (let i = 0; i < 8; i++) {
+                setTimeout(createBloom, Math.random() * 3000);
+            }
+
+            // Create new blooms periodically
+            setInterval(createBloom, 3000);
+            updateWalletDisplay();
+        });
+        function showError(message) {
+                const errorModal = document.querySelector('.error-modal');
+                const errorMessage = document.querySelector('.error-message');
+                errorMessage.textContent = message;
+                errorModal.style.display = 'block';
+                // Focus the close button
+                document.querySelector('.close-error').focus();
+            }
+            document.querySelector('.close-error').addEventListener('click', () => {
+                document.querySelector('.error-modal').style.display = 'none';
+                // Refocus the amount input after closing error
+                amountInput.focus();
+            });
+    </script>
+    <script>
+        // Wallet functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const walletBtn = document.querySelector('.wallet-btn');
+            const walletOverlay = document.querySelector('.wallet-overlay');
+            const closeWallet = document.querySelector('.close-wallet');
+            const addFundsBtn = document.getElementById('addFunds');
+            const withdrawFundsBtn = document.getElementById('withdrawFunds');
+            const amountInput = document.getElementById('amount');
+            const transactionsList = document.getElementById('transactionsList');
+            const walletBalance = document.querySelector('.wallet-balance');
+            const modalBalance = document.getElementById('modalBalance');
+
+            // Load wallet data from session storage
+            let walletData = {
+                balance: 0,
+                transactions: []
+            };
+
+            function loadWalletData() {
+                const storedWallet = sessionStorage.getItem('walletData');
+                if (storedWallet) {
+                    walletData = JSON.parse(storedWallet);
+                    updateBalanceDisplay();
+                    renderTransactions();
+                }
+            }
+
+            // Save wallet data to session storage
+            function saveWalletData() {
+                sessionStorage.setItem('walletData', JSON.stringify(walletData));
+            }
+
+            // Update balance display
+            function updateBalanceDisplay() {
+                walletBalance.textContent = `${walletData.balance.toFixed(2)} ETH`;
+                modalBalance.textContent = walletData.balance.toFixed(2);
+            }
+
+            // Add a transaction
+            function addTransaction(type, amount) {
+                const transaction = {
+                    type: type,
+                    amount: parseFloat(amount),
+                    timestamp: new Date().toISOString()
+                };
+
+                walletData.transactions.unshift(transaction);
+                if (walletData.transactions.length > 10) {
+                    walletData.transactions.pop();
+                }
+
+                renderTransactions();
+                saveWalletData();
+            }
+
+            // Render transactions list
+            function renderTransactions() {
+                transactionsList.innerHTML = '';
+
+                if (walletData.transactions.length === 0) {
+                    transactionsList.innerHTML = '<div class="transaction-item">No transactions yet</div>';
+                    return;
+                }
+
+                walletData.transactions.forEach(transaction => {
+                    const date = new Date(transaction.timestamp);
+                    const formattedTime = date.toLocaleString();
+
+                    const transactionEl = document.createElement('div');
+                    transactionEl.className = 'transaction-item';
+                    transactionEl.innerHTML = `
+                <div class="transaction-info">
+                  <div class="transaction-type">${transaction.type}</div>
+                  <div class="transaction-time">${formattedTime}</div>
+                </div>
+                <div class="transaction-amount ${transaction.type.toLowerCase()}">
+                  ${transaction.type === 'Deposit' ? '+' : '-'}${transaction.amount.toFixed(2)} ETH
+                </div>
+              `;
+
+                    transactionsList.appendChild(transactionEl);
+                });
+            }
+
+            // Open wallet modal
+            walletBtn.addEventListener('click', function () {
+                walletOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close wallet modal
+            closeWallet.addEventListener('click', function () {
+                walletOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            walletOverlay.addEventListener('click', function (e) {
+                if (e.target === walletOverlay) {
+                    walletOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Add funds
+            addFundsBtn.addEventListener('click', function () {
+                const amount = parseFloat(amountInput.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showError('Please enter a valid amount');
+                    return;
+                }
+
+                walletData.balance += amount;
+                addTransaction('Deposit', amount);
+                updateBalanceDisplay();
+                amountInput.value = '';
+            });
+
+            // Withdraw funds
+            withdrawFundsBtn.addEventListener('click', function () {
+                const amount = parseFloat(amountInput.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showError('Please enter a valid amount');
+                    return;
+                }
+
+                if (amount > walletData.balance) {
+                    showError('Insufficient funds');
+                    return;
+                }
+
+                walletData.balance -= amount;
+                addTransaction('Withdrawal', amount);
+                updateBalanceDisplay();
+                amountInput.value = '';
+            });
+
+            function showError(message) {
+                const errorModal = document.querySelector('.error-modal');
+                const errorMessage = document.querySelector('.error-message');
+                errorMessage.textContent = message;
+                errorModal.style.display = 'block';
+                // Focus the close button
+                document.querySelector('.close-error').focus();
+            }
+            document.querySelector('.close-error').addEventListener('click', () => {
+                document.querySelector('.error-modal').style.display = 'none';
+                // Refocus the amount input after closing error
+                amountInput.focus();
+            });
+
+            // Initialize wallet
+            loadWalletData();
+        });
+    </script>
+    <div class="error-modal">
+        <div class="error-message"></div>
+        <button class="close-error"
+            style="margin-top: 15px; padding: 8px 15px; background: #ff3a3a; border: none; border-radius: 5px; color: white; cursor: pointer;">Close</button>
+    </div>
+</body>
+
+</html>

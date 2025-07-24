@@ -1,0 +1,1852 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital DaVinci | NFT Marketplace</title>
+    <style>
+        .ape-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(45deg, #080808, #111111);
+        }
+
+        .bloom {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.6;
+            animation: float 20s infinite linear, pulse 8s infinite alternate;
+            mix-blend-mode: screen;
+            width: 600px !important;
+            height: 600px !important;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+                opacity: 0.7;
+            }
+
+            25% {
+                transform: translate(100%, 50%) scale(1.3);
+            }
+
+            50% {
+                transform: translate(50%, 100%) scale(0.9);
+            }
+
+            75% {
+                transform: translate(-50%, 75%) scale(1.4);
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 0.8;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .error-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #ff3a3a;
+            z-index: 3000;
+            box-shadow: 0 0 20px rgba(255, 58, 58, 0.3);
+            display: none;
+        }
+
+        .error-message {
+            color: white;
+            font-size: 16px;
+        }
+
+
+        /* Custom scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 12px;
+            background-color: #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background-color: #555;
+            border-radius: 10px;
+            border: 3px solid #1a1a1a;
+        }
+
+        ::-webkit-scrollbar-track {
+            background-color: #1a1a1a;
+            border-radius: 10px;
+        }
+
+        /* For Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #555 #1a1a1a;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        /* Navbar styles */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: rgba(15, 15, 15, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid #2a2a2a;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo span {
+            color: #2081e2;
+            position: relative;
+        }
+
+        .logo span::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #2081e2, #7f5af3);
+            bottom: -5px;
+            left: 0;
+            border-radius: 3px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            color: #aaa;
+            transition: all 0.3s;
+            position: relative;
+            padding: 5px 0;
+        }
+
+        .nav-link:hover {
+            color: #fff;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #2081e2, #7f5af3);
+            bottom: 0;
+            left: 0;
+            transition: width 0.3s;
+            border-radius: 2px;
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: #fff;
+            position: relative;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #2081e2, #7f5af3);
+            border-radius: 2px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .profile-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(32, 129, 226, 0.3);
+        }
+
+        .profile-icon:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(32, 129, 226, 0.5);
+        }
+
+
+        /* Hero section */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 40px 80px;
+            background: radial-gradient(circle at center, #000000 0%, #000000 100%);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+
+        .hero h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            background: linear-gradient(to right, #fff, #2081e2, #7f5af3, #fff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: gradient-text 8s linear infinite;
+            background-size: 200% auto;
+        }
+
+        @keyframes gradient-text {
+            0% {
+                background-position: 0% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        .hero p {
+            font-size: 18px;
+            color: #aaa;
+            max-width: 700px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .hero-content {
+            color: #ffffff;
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .page-description {
+            color: #ffffff;
+            font-size: 18px;
+            line-height: 1.6;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .explore-btn {
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            position: relative;
+            z-index: 1;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(32, 129, 226, 0.4);
+        }
+
+        .explore-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #7f5af3, #2081e2);
+            z-index: -1;
+            transition: opacity 0.5s;
+            opacity: 0;
+        }
+
+        .explore-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(32, 129, 226, 0.6);
+        }
+
+        .explore-btn:hover::before {
+            opacity: 1;
+        }
+
+
+        /* Featured Artists */
+        .featured-artists {
+            padding: 80px 40px;
+            position: relative;
+            background: linear-gradient(to bottom, #0f0f0f, #1a1a1a);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .artists-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 25px;
+        }
+
+        @media (max-width: 1200px) {
+            .artists-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .artists-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .artists-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .artist-card {
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            aspect-ratio: 1/1.2;
+            /* Maintain consistent card proportions */
+        }
+
+        .artist-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(32, 129, 226, 0.3);
+        }
+
+        .artist-img {
+            width: 100%;
+            height: 70%;
+            /* Give more space to the image */
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .artist-card:hover .artist-img {
+            transform: scale(1.05);
+        }
+
+        .artist-info {
+            padding: 20px;
+            height: 30%;
+            /* Fixed height for info section */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .artist-name {
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 16px;
+            transition: color 0.3s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .artist-card:hover .artist-name {
+            color: #2081e2;
+        }
+
+        .artist-stats {
+            color: #aaa;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .artist-stats::before {
+            content: '⬤';
+            color: #2081e2;
+            font-size: 10px;
+            margin-right: 6px;
+        }
+
+        /* NFT Grid */
+        .nft-grid-section {
+            padding: 60px 40px 100px;
+            background: linear-gradient(to bottom, #1a1a1a, #0f0f0f);
+            position: relative;
+        }
+
+        .nft-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .nft-card {
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.4s;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nft-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 30px rgba(32, 129, 226, 0.3);
+        }
+
+        .nft-img-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .nft-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+
+        .nft-card:hover .nft-img {
+            transform: scale(1.08);
+        }
+
+        .nft-card-info {
+            padding: 20px;
+            background: #1a1a1a;
+            position: relative;
+        }
+
+        .nft-card-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #2081e2, transparent);
+        }
+
+        .nft-collection {
+            color: #aaa;
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            transition: color 0.3s;
+        }
+
+        .nft-collection::before {
+            content: '⬤';
+            color: #7f5af3;
+            font-size: 8px;
+            margin-right: 6px;
+        }
+
+        .nft-card:hover .nft-collection {
+            color: #7f5af3;
+        }
+
+        .nft-title {
+            font-weight: bold;
+            margin-bottom: 20px;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .nft-card:hover .nft-title {
+            color: #2081e2;
+        }
+
+        .nft-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid #2a2a2a;
+            border-bottom: 1px solid #2a2a2a;
+            margin-bottom: 15px;
+        }
+
+        .price-label {
+            color: #aaa;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .price-value {
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .price-value::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 16px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='16' viewBox='0 0 256 417'%3E%3Cpath fill='%2343AEEF' d='M127.9 0l-2.6 9v275.7l2.6 2.5l127.9-75.5z'/%3E%3Cpath fill='%2372C3F9' d='M127.9 0L0 212.2l127.9 75.5V154.2z'/%3E%3Cpath fill='%231589CF' d='M127.9 312.2L125 316v86.6l2.9 8.4l128-180.1z'/%3E%3Cpath fill='%233CAEE5' d='M127.9 410.9V312.2L0 231z'/%3E%3Cpath fill='%2364C1F9' d='M127.9 287.7l127.9-75.5l-127.9-58.1z'/%3E%3Cpath fill='%239EDAD6' d='M0 212.2l127.9 75.5v-133.5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            margin-right: 5px;
+        }
+
+
+        /* NFT Card Badges */
+        .nft-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(45deg, #ff3a3a, #ff8a3a);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 2;
+            box-shadow: 0 3px 8px rgba(255, 58, 58, 0.4);
+        }
+
+        .hot-badge {
+            background: linear-gradient(45deg, #ff3a3a, #ff8a3a);
+        }
+
+        .new-badge {
+            background: linear-gradient(45deg, #3aff6f, #3ad5ff);
+        }
+
+
+
+        /* Footer */
+        .footer {
+            background-color: #1a1a1a;
+            padding: 60px 40px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .footer-top {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-logo span {
+            color: #2081e2;
+            position: relative;
+        }
+
+        .footer-logo span::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #2081e2, #7f5af3);
+            bottom: -5px;
+            left: 0;
+            border-radius: 3px;
+        }
+
+        .footer-about {
+            color: #aaa;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #2a2a2a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .social-icon svg {
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s;
+        }
+
+        .social-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .social-icon:hover::before {
+            opacity: 1;
+        }
+
+        .social-icon:hover svg {
+            transform: scale(1.2);
+        }
+
+        .footer-heading {
+            font-weight: bold;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        .footer-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, #2081e2, #7f5af3);
+            border-radius: 2px;
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .footer-link {
+            color: #aaa;
+            transition: all 0.3s;
+            position: relative;
+            display: inline-block;
+            padding-left: 15px;
+        }
+
+        .footer-link::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #2081e2;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .footer-link:hover {
+            color: #fff;
+            padding-left: 20px;
+        }
+
+        .footer-link:hover::before {
+            opacity: 1;
+        }
+
+        .footer-bottom {
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+            text-align: center;
+            color: #aaa;
+        }
+
+
+
+        /* Back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+            box-shadow: 0 5px 15px rgba(32, 129, 226, 0.5);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(32, 129, 226, 0.7);
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 15px 20px;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 60px 20px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero p {
+                font-size: 16px;
+            }
+
+            .featured-artists,
+            .nft-grid-section {
+                padding: 40px 20px;
+            }
+
+            .artists-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+
+            .nft-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+
+            .stats-counter {
+                padding: 40px 20px;
+            }
+
+            .footer {
+                padding: 40px 20px;
+            }
+        }
+
+        /* Mobile menu trigger */
+        .mobile-menu-trigger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .mobile-menu-trigger span {
+            display: block;
+            height: 2px;
+            width: 100%;
+            background-color: white;
+            transition: all 0.3s;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-trigger {
+                display: flex;
+            }
+
+            .nav-right {
+                gap: 15px;
+            }
+        }
+
+        /* Animation for cards */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+        }
+
+        .animate-on-scroll.animated {
+            animation: fadeInUp 0.6s forwards;
+        }
+
+        /* Add staggered animation delays */
+        .artist-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .artist-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .artist-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .artist-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .artist-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .nft-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .nft-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .nft-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .nft-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .nft-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .nft-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+
+        /* Mobile menu styles */
+        .mobile-menu {
+            position: fixed;
+            top: 0;
+            right: -100%;
+            width: 80%;
+            max-width: 300px;
+            height: 100vh;
+            background-color: #1a1a1a;
+            z-index: 1001;
+            transition: right 0.3s ease;
+            padding: 80px 20px 20px;
+            border-left: 1px solid #2a2a2a;
+        }
+
+        .mobile-menu.active {
+            right: 0;
+        }
+
+        .mobile-menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mobile-menu-link {
+            color: #aaa;
+            font-size: 18px;
+            padding: 10px 0;
+            border-bottom: 1px solid #2a2a2a;
+            transition: color 0.3s;
+        }
+
+        .mobile-menu-link:hover {
+            color: #2081e2;
+        }
+
+        .mobile-menu-link.active {
+            color: #fff;
+        }
+
+        .close-menu {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .close-menu::before,
+        .close-menu::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #fff;
+        }
+
+        .close-menu::before {
+            transform: rotate(45deg);
+        }
+
+        .close-menu::after {
+            transform: rotate(-45deg);
+        }
+
+        /* Wallet Button Styles */
+        .wallet-btn {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(32, 129, 226, 0.3);
+        }
+
+        .wallet-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(32, 129, 226, 0.4);
+        }
+
+        .wallet-btn svg {
+            margin-right: 8px;
+        }
+
+        .wallet-balance {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Wallet Modal Styles */
+        .wallet-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .wallet-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .wallet-modal {
+            width: 90%;
+            max-width: 400px;
+            background-color: #1a1a1a;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid #2a2a2a;
+        }
+
+        .wallet-overlay.active .wallet-modal {
+            transform: translateY(0);
+        }
+
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .wallet-header h3 {
+            font-size: 20px;
+            margin: 0;
+            background: linear-gradient(to right, #2081e2, #7f5af3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .close-wallet {
+            font-size: 24px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .close-wallet:hover {
+            background-color: #2a2a2a;
+        }
+
+        .wallet-balance-display {
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 12px;
+            background-color: #2a2a2a;
+        }
+
+        .balance-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+        }
+
+        .balance-amount {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(to right, #fff, #2081e2, #7f5af3);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .wallet-actions {
+            margin-bottom: 25px;
+        }
+
+        .wallet-action {
+            margin-bottom: 15px;
+        }
+
+        .wallet-action input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 10px;
+            background-color: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .wallet-action input:focus {
+            outline: none;
+            border-color: #2081e2;
+        }
+
+        .wallet-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .wallet-button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .wallet-button.add {
+            background: linear-gradient(45deg, #2081e2, #7f5af3);
+            color: white;
+        }
+
+        .wallet-button.withdraw {
+            background: #2a2a2a;
+            color: white;
+            border: 1px solid #3a3a3a;
+        }
+
+        .wallet-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .wallet-button.add:hover {
+            box-shadow: 0 5px 15px rgba(32, 129, 226, 0.3);
+        }
+
+        .wallet-transactions {
+            padding-top: 15px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .wallet-transactions h4 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        .transactions-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .transaction-item {
+            padding: 12px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .transaction-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .transaction-type {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .transaction-time {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 4px;
+        }
+
+        .transaction-amount {
+            font-weight: 600;
+        }
+
+        .transaction-amount.add {
+            color: #4CAF50;
+        }
+
+        .transaction-amount.withdraw {
+            color: #F44336;
+        }
+
+        /* Transaction animation */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .transaction-item {
+            animation: fadeIn 0.3s forwards;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .wallet-btn {
+                padding: 6px 10px;
+                margin-right: 10px;
+            }
+
+            .wallet-balance {
+                font-size: 12px;
+            }
+
+            .wallet-btn svg {
+                width: 16px;
+                height: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Mobile menu overlay -->
+    <div class="overlay"></div>
+
+    <!-- Mobile menu -->
+    <div class="mobile-menu">
+        <div class="close-menu"></div>
+        <div class="mobile-menu-links">
+            <a href="index.html" class="mobile-menu-link active">Home</a>
+            <a href="collections.html" class="mobile-menu-link">Collections</a>
+            <a href="artists.html" class="mobile-menu-link">Artists</a>
+        </div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="index.html" class="logo">Digital<span>DaVinci</span></a>
+
+        <div class="nav-links">
+            <a href="index.html" class="nav-link active">Home</a>
+            <a href="collections.html" class="nav-link">Collections</a>
+            <a href="artists.html" class="nav-link">Artists</a>
+        </div>
+
+        <div class="nav-right">
+            <div class="wallet-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                </svg>
+                <span class="wallet-balance">0.00 ETH</span>
+            </div>
+            <div class="mobile-menu-trigger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+
+        <div>
+            <h1>Discover, Collect & Sell Rare Digital Art</h1>
+            <p class="page-description">
+            <pre>            </pre> Digital DaVinci is the premier NFT marketplace for digital artists and collectors.
+            Explore unique artworks, support talented creators, and build your collection.</p>
+            <button class="explore-btn" onclick="location.href='collections.html'">Explore Collection</button>
+        </div>
+    </section>
+
+    <!-- Featured Artists -->
+    <section class="featured-artists">
+        <div class="section-header">
+            <h2 class="section-title">Featured Artists</h2>
+            <a href="artists.html" class="view-all">View All</a>
+        </div>
+
+        <div class="artists-grid">
+            <div class="artist-card animate-on-scroll" onclick="location.href='artists/ape.html'">
+                <img src="ArtistProfile/ape.avif" alt="Bored Ape Yacht Club" class="artist-img">
+                <div class="artist-info">
+                    <div class="artist-name">Bored Ape Yacht Club</div>
+                    <div class="artist-stats">6 NFTs</div>
+                </div>
+            </div>
+            <div class="artist-card animate-on-scroll" onclick="location.href='artists/axie.html'">
+                <img src="ArtistProfile/axie.jpg" alt="Axie" class="artist-img">
+                <div class="artist-info">
+                    <div class="artist-name">Axie</div>
+                    <div class="artist-stats">6 NFTs</div>
+                </div>
+            </div>
+            <div class="artist-card animate-on-scroll" onclick="location.href='artists/crypto.html'">
+                <img src="ArtistProfile/cryptopunks.avif" alt="CryptoPunks" class="artist-img">
+                <div class="artist-info">
+                    <div class="artist-name">CryptoPunks</div>
+                    <div class="artist-stats">6 NFTs</div>
+                </div>
+            </div>
+            <div class="artist-card animate-on-scroll" onclick="location.href='artists/penguine.html'">
+                <img src="ArtistProfile/penguine.png" alt="Pudgy Penguins" class="artist-img">
+                <div class="artist-info">
+                    <div class="artist-name">Pudgy Penguins</div>
+                    <div class="artist-stats">6 NFTs</div>
+                </div>
+            </div>
+            <div class="artist-card animate-on-scroll" onclick="location.href='artists/ronkeverse.html'">
+                <img src="ArtistProfile/ronkeverse.png" alt="Ronkeverse" class="artist-img">
+                <div class="artist-info">
+                    <div class="artist-name">Ronkeverse</div>
+                    <div class="artist-stats">6 NFTs</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- NFT Grid -->
+    <section class="nft-grid-section">
+        <div class="section-header">
+            <h2 class="section-title">Trending NFTs</h2>
+        </div>
+
+        <div class="nft-grid">
+            <!-- NFT Card 1 -->
+            <div class="nft-card animate-on-scroll" onclick="location.href='artists/penguine.html'">
+                <div class="nft-img-container">
+                    <img src="items/penguine/penguine1915.avif" alt="#1915" class="nft-img">
+                    <div class="nft-badge hot-badge">HOT</div>
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">Pudgy Penguins's Creations</div>
+                    <div class="nft-title">#1915</div>
+                    <pre>
+            </pre>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">25.77 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">47.21 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFT Card 2 -->
+            <div class="nft-card animate-on-scroll" onclick="location.href='artists/ronkeverse.html'">
+                <div class="nft-img-container">
+                    <img src="items/ronk/ronkverse6555.avif" alt="#6555" class="nft-img">
+                    <div class="nft-badge new-badge">NEW</div>
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">Ronkeverse</div>
+                    <div class="nft-title">#6555</div>
+                    <pre>
+            </pre>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">39.99 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">18.00 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFT Card 3 -->
+            <div class="nft-card animate-on-scroll" onclick="location.href='artists/ape.html'">
+                <div class="nft-img-container">
+                    <img src="items/apes/ape4189.avif" alt="#6555" class="nft-img">
+                    <div class="nft-badge hot-badge">HOT</div>
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">Bored Ape Yacht's Creations</div>
+                    <div class="nft-title">#4189</div>
+                    <pre>
+            </pre>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">149.00 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">47.21 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFT Card 4 -->
+            <div class="nft-card animate-on-scroll" onclick="location.href='artists/penguine.html'">
+                <div class="nft-img-container">
+                    <img src="items/penguine/penguine4010.avif" alt="#6555" class="nft-img">
+                    <div class="nft-badge new-badge">NEW</div>
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">Pudgy Penguin's Creations</div>
+                    <div class="nft-title">#4010</div>
+                    <pre>
+            </pre>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">260.00 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">145.00 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NFT Card 5 -->
+            <div class="nft-card animate-on-scroll" onclick="location.href='artists/crypto.html'">
+                <div class="nft-img-container">
+                    <img src="items/crypto/crypto1317.avif" alt="#6555" class="nft-img">
+                    <div class="nft-badge new-badge">NEW</div>
+                </div>
+                <div class="nft-card-info">
+                    <div class="nft-collection">CryptoPunk's Creations</div>
+                    <div class="nft-title">#1317</div>
+                    <pre>
+            </pre>
+                    <div class="nft-price-row">
+                        <div>
+                            <div class="price-label">PRICE</div>
+                            <div class="price-value">35.60 ETH</div>
+                        </div>
+                        <div>
+                            <div class="price-label">LAST SALE</div>
+                            <div class="price-value">29.19 ETH</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-column" style="flex: 2;">
+                <div class="footer-logo">Digital<span>DaVinci</span></div>
+                <p class="footer-about">
+                    Digital DaVinci is the premier NFT marketplace for artists and collectors to buy, sell, and discover
+                    rare digital art.
+                </p>
+                <div class="social-icons">
+                    <a href="https://x.com/?lang=en" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                        </svg>
+                    </a>
+                    <a href="https://www.instagram.com/" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
+                        </svg>
+                    </a>
+                    <a href="https://discord.com/" target="_blank" class="social-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+                            <path
+                                d="M19.27 5.33C17.94 4.71 16.5 4.26 15 4a.09.09 0 0 0-.07.03c-.18.33-.39.76-.53 1.09a16.09 16.09 0 0 0-4.8 0c-.14-.34-.35-.76-.54-1.09-.01-.02-.04-.03-.07-.03-1.5.26-2.93.71-4.27 1.33-.01 0-.02.01-.03.02-2.72 4.07-3.47 8.03-3.1 11.95 0 .02.01.04.03.05 1.8 1.32 3.53 2.12 5.24 2.65.03.01.06 0 .07-.02.4-.55.76-1.13 1.07-1.74.02-.04 0-.08-.04-.09-.57-.22-1.11-.48-1.64-.78-.04-.02-.04-.08-.01-.11.11-.08.22-.17.33-.25.02-.02.05-.02.07-.01 3.44 1.57 7.15 1.57 10.55 0 .02-.01.05-.01.07.01.11.09.22.17.33.26.04.03.04.09-.01.11-.52.31-1.07.56-1.64.78-.04.01-.05.06-.04.09.32.61.68 1.19 1.07 1.74.03.01.06.02.09.01 1.72-.53 3.45-1.33 5.25-2.65.02-.01.03-.03.03-.05.44-4.53-.73-8.46-3.1-11.95-.01-.01-.02-.02-.04-.02zM8.52 14.91c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.84 2.12-1.89 2.12zm6.97 0c-1.03 0-1.89-.95-1.89-2.12s.84-2.12 1.89-2.12c1.06 0 1.9.96 1.89 2.12 0 1.17-.83 2.12-1.89 2.12z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+
+            <div class="footer-column" style="flex: 1;">
+                <h3 class="footer-heading">Quick Links</h3>
+                <div class="footer-links">
+                    <a href="index.html" class="footer-link">Home</a>
+                    <a href="collections.html" class="footer-link">Collections</a>
+                    <a href="artists.html" class="footer-link">Artists</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Digital DaVinci. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Back to top button -->
+    <div class="back-to-top">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
+        </svg>
+    </div>
+    <div class="wallet-overlay">
+        <div class="wallet-modal">
+            <div class="wallet-header">
+                <h3>Your Wallet</h3>
+                <div class="close-wallet">×</div>
+            </div>
+            <div class="wallet-balance-display">
+                <div class="balance-label">Current Balance</div>
+                <div class="balance-amount"><span id="modalBalance">0.00</span> ETH</div>
+            </div>
+            <div class="wallet-actions">
+                <div class="wallet-action">
+                    <input type="number" id="amount" placeholder="Amount in ETH" step="0.01" min="0.01">
+                    <div class="wallet-buttons">
+                        <button id="addFunds" class="wallet-button add">Add Funds</button>
+                        <button id="withdrawFunds" class="wallet-button withdraw">Withdraw</button>
+                    </div>
+                </div>
+            </div>
+            <div class="wallet-transactions">
+                <h4>Recent Transactions</h4>
+                <div class="transactions-list" id="transactionsList">
+                    <!-- Transactions will be added here dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Simple login toggle functionality
+        let isLoggedIn = false;
+
+        function toggleLogin() {
+            if (!isLoggedIn) {
+                // Show login form or redirect to login page
+                window.location.href = "login.html"; // Create this page next
+            } else {
+                // Toggle dropdown menu for logged in user
+                console.log("User menu toggled");
+                // In a real implementation, you would show/hide a dropdown menu here
+            }
+        }
+
+        // Check login status
+        function checkLoginStatus() {
+            const userData = sessionStorage.getItem('currentUser');
+            if (userData) {
+                isLoggedIn = true;
+                const user = JSON.parse(userData);
+                // Update profile icon with user's initial or avatar
+                document.querySelector('.profile-icon').textContent = user.name.charAt(0).toUpperCase();
+            }
+        }
+
+        // Mobile menu functionality
+        const mobileMenuTrigger = document.querySelector('.mobile-menu-trigger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const overlay = document.querySelector('.overlay');
+        const closeMenu = document.querySelector('.close-menu');
+
+        mobileMenuTrigger.addEventListener('click', () => {
+            mobileMenu.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+
+        closeMenu.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        overlay.addEventListener('click', () => {
+            mobileMenu.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+
+        // Back to top button
+        const backToTopButton = document.querySelector('.back-to-top');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+
+        // Animate elements on scroll
+        function animateOnScroll() {
+            const elements = document.querySelectorAll('.animate-on-scroll');
+
+            elements.forEach(element => {
+                const elementPosition = element.getBoundingClientRect().top;
+                const screenPosition = window.innerHeight / 1.3;
+
+                if (elementPosition < screenPosition) {
+                    element.classList.add('animated');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', animateOnScroll);
+
+
+        // Initialize
+        window.onload = function () {
+            checkLoginStatus();
+            animateOnScroll(); // Run once on load to check initial positions
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            const errorModal = document.querySelector('.error-modal');
+            const errorMessage = document.querySelector('.error-message');
+            const closeErrorBtn = document.querySelector('.close-error');
+            const amountInput = document.querySelector('#amount'); // Adjust if your input ID is different
+
+            function showError(message) {
+                if (errorModal && errorMessage && closeErrorBtn) {
+                    errorMessage.textContent = message;
+                    errorModal.style.display = 'block';
+                    closeErrorBtn.focus();
+                }
+            }
+
+            if (closeErrorBtn && errorModal) {
+                closeErrorBtn.addEventListener('click', () => {
+                    errorModal.style.display = 'none';
+                    if (amountInput) amountInput.focus();
+                });
+            }
+        });
+    </script>
+    <script>
+        // Wallet functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const walletBtn = document.querySelector('.wallet-btn');
+            const walletOverlay = document.querySelector('.wallet-overlay');
+            const closeWallet = document.querySelector('.close-wallet');
+            const addFundsBtn = document.getElementById('addFunds');
+            const withdrawFundsBtn = document.getElementById('withdrawFunds');
+            const amountInput = document.getElementById('amount');
+            const transactionsList = document.getElementById('transactionsList');
+            const walletBalance = document.querySelector('.wallet-balance');
+            const modalBalance = document.getElementById('modalBalance');
+
+            // Load wallet data from session storage
+            let walletData = {
+                balance: 0,
+                transactions: []
+            };
+
+            function loadWalletData() {
+                const storedWallet = sessionStorage.getItem('walletData');
+                if (storedWallet) {
+                    walletData = JSON.parse(storedWallet);
+                    updateBalanceDisplay();
+                    renderTransactions();
+                }
+            }
+
+            // Save wallet data to session storage
+            function saveWalletData() {
+                sessionStorage.setItem('walletData', JSON.stringify(walletData));
+            }
+
+            // Update balance display
+            function updateBalanceDisplay() {
+                walletBalance.textContent = `${walletData.balance.toFixed(2)} ETH`;
+                modalBalance.textContent = walletData.balance.toFixed(2);
+            }
+
+            // Add a transaction
+            function addTransaction(type, amount) {
+                const transaction = {
+                    type: type,
+                    amount: parseFloat(amount),
+                    timestamp: new Date().toISOString()
+                };
+
+                walletData.transactions.unshift(transaction);
+                if (walletData.transactions.length > 10) {
+                    walletData.transactions.pop();
+                }
+
+                renderTransactions();
+                saveWalletData();
+            }
+
+            // Render transactions list
+            function renderTransactions() {
+                transactionsList.innerHTML = '';
+
+                if (walletData.transactions.length === 0) {
+                    transactionsList.innerHTML = '<div class="transaction-item">No transactions yet</div>';
+                    return;
+                }
+
+                walletData.transactions.forEach(transaction => {
+                    const date = new Date(transaction.timestamp);
+                    const formattedTime = date.toLocaleString();
+
+                    const transactionEl = document.createElement('div');
+                    transactionEl.className = 'transaction-item';
+                    transactionEl.innerHTML = `
+            <div class="transaction-info">
+              <div class="transaction-type">${transaction.type}</div>
+              <div class="transaction-time">${formattedTime}</div>
+            </div>
+            <div class="transaction-amount ${transaction.type.toLowerCase()}">
+              ${transaction.type === 'Deposit' ? '+' : '-'}${transaction.amount.toFixed(2)} ETH
+            </div>
+          `;
+
+                    transactionsList.appendChild(transactionEl);
+                });
+            }
+
+            // Open wallet modal
+            walletBtn.addEventListener('click', function () {
+                walletOverlay.classList.add('active');
+                amountInput.focus();
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Close wallet modal
+            closeWallet.addEventListener('click', function () {
+                walletOverlay.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+
+            walletOverlay.addEventListener('click', function (e) {
+                if (e.target === walletOverlay) {
+                    walletOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Add funds
+            addFundsBtn.addEventListener('click', function () {
+                const amount = parseFloat(amountInput.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showError('Please enter a valid amount');
+                    return;
+                }
+
+                walletData.balance += amount;
+                addTransaction('Deposit', amount);
+                updateBalanceDisplay();
+                amountInput.value = '';
+            });
+
+            // Withdraw funds
+            withdrawFundsBtn.addEventListener('click', function () {
+                const amount = parseFloat(amountInput.value);
+
+                if (isNaN(amount) || amount <= 0) {
+                    showError('Please enter a valid amount');
+                    return;
+                }
+
+                if (amount > walletData.balance) {
+                    showError('Insufficient funds');
+                    return;
+                }
+
+                walletData.balance -= amount;
+                addTransaction('Withdrawal', amount);
+                updateBalanceDisplay();
+                amountInput.value = '';
+            });
+
+            function showError(message) {
+                const errorModal = document.querySelector('.error-modal');
+                const errorMessage = document.querySelector('.error-message');
+                errorMessage.textContent = message;
+                errorModal.style.display = 'block';
+                // Focus the close button
+                document.querySelector('.close-error').focus();
+            }
+            document.querySelector('.close-error').addEventListener('click', () => {
+                document.querySelector('.error-modal').style.display = 'none';
+                // Refocus the amount input after closing error
+                amountInput.focus();
+            });
+
+            // Initialize wallet
+            loadWalletData();
+        });
+    </script>
+    <div class="error-modal">
+        <div class="error-message"></div>
+        <button class="close-error"
+            style="margin-top: 15px; padding: 8px 15px; background: #ff3a3a; border: none; border-radius: 5px; color: white; cursor: pointer;">Close</button>
+    </div>
+</body>
+
+</html>
